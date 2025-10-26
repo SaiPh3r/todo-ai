@@ -148,9 +148,7 @@ const App = () => {
                   >
                     <div className="todo-content">
                       <span className="todo-text">{todo.text}</span>
-                      <span className="todo-status">
-                        {todo.completed ? "✅" : "❌"}
-                      </span>
+
                     </div>
                   </li>
                 ))}

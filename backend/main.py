@@ -23,7 +23,7 @@ class Todo(BaseModel):
     id:Optional[str] = None
     user_id:str
     text:str
-    completed:bool = Field(default=False)
+    # completed:bool = Field(default=False)
 
 class User(BaseModel):
     user_id:str
@@ -69,7 +69,7 @@ def create_todo(todo:Todo):
             new_todo={
                 "id":len(user["todos"])+1,
                 "text":todo.text,
-                "completed":todo.completed
+                # "completed":todo.completed
             }
             user["todos"].append(new_todo)
             save_data(data)
