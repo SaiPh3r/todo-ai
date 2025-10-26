@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  SignedIn,
-  SignedOut,
   SignInButton,
   UserButton,
   useUser,
@@ -37,6 +35,7 @@ const App = () => {
   const { getToken } = useAuth();
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [newTodo, setNewTodo] = useState("");
 
   useEffect(() => {
     if (!isSignedIn) {
@@ -64,6 +63,25 @@ const App = () => {
 
     loadUserData();
   }, [isSignedIn, getToken, user]);
+
+
+  const handleAddTodo = async (e) => {
+    e.preventDefault();
+    if (!newTodo.trim()) return;
+
+    try {
+      const token = await getToken();
+      const { data } = await axios.post(
+        `http://127.0.0.1:8000/create`,
+        { user_id : user.id, text: newTodo, completed: false },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setTodos((prev) => [...prev, data.todo]);
+      setNewTodo("");
+    } catch (error) {
+      console.error("Failed to add todo:", error);
+    }
+  };
 
   if (loading) return <LoadingSpinner />;
 
@@ -105,12 +123,26 @@ const App = () => {
             </h3>
           </div>
 
+          {/* 🟢 Add Todo Form */}
+          <form onSubmit={handleAddTodo} className="add-todo-form">
+            <input
+              type="text"
+              placeholder="Write a new note..."
+              value={newTodo}
+              onChange={(e) => setNewTodo(e.target.value)}
+              className="todo-input"
+            />
+            <button type="submit" className="add-button">
+              ➕ Add
+            </button>
+          </form>
+
           <div className="todos-card">
             {todos.length ? (
               <ul className="todos-list">
                 {todos.map((todo, index) => (
-                  <li 
-                    key={todo.id}
+                  <li
+                    key={todo.id || index}
                     className="todo-item"
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
@@ -126,7 +158,13 @@ const App = () => {
             ) : (
               <div className="empty-state">
                 <div className="empty-icon">
-                  <svg className="document-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <svg
+                    className="document-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
                     <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>

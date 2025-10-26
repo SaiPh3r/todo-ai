@@ -1,6 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI , HTTPException
 from pydantic import BaseModel , Field
-from typing import List
+from typing import List , Optional
 import json
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -20,7 +20,8 @@ app.add_middleware(
 )
 
 class Todo(BaseModel):
-    id:str
+    id:Optional[str] = None
+    user_id:str
     text:str
     completed:bool = Field(default=False)
 
@@ -54,6 +55,27 @@ def get_or_create_user(user_id: str, email: str):
             return user
         
     new_user = User(user_id=user_id , email=email)
-    data["users"].append(new_user.dict())
+    data["users"].append(new_user.model_dump())
     save_data(data)
     return new_user
+
+@app.post("/create")
+def create_todo(todo:Todo):
+    data = load_data()
+    if not todo.user_id:
+        raise HTTPException(status_code=404 , detail = "user not found")
+    for user in data["users"]:
+        if(user["user_id"] == todo.user_id):
+            new_todo={
+                "id":len(user["todos"])+1,
+                "text":todo.text,
+                "completed":todo.completed
+            }
+            user["todos"].append(new_todo)
+            save_data(data)
+            return {"message": "Todo added successfully", "todo": new_todo}
+        
+    raise HTTPException(status_code=404, detail="User not found")
+
+
+
